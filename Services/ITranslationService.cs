@@ -2,6 +2,8 @@
 {
     public interface ITranslationService
     {
-        public bool IsKeyAndEndpointValid(); 
+        public bool IsKeyAndEndpointValid();
+
+        public Task<string> GetSupportedLanguages();
     }
 }

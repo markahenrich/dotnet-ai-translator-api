@@ -8,20 +8,20 @@ namespace DotnetAiTranslatorApi.Controllers
     [ApiController]
     public class TranslationController : ControllerBase
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<TranslationController> _logger;
         private readonly ITranslationService _translationService; 
 
-        public TranslationController(ILogger logger, ITranslationService translationService)
+        public TranslationController(ILogger<TranslationController> logger, ITranslationService translationService)
         {
             _logger = logger;
             _translationService = translationService; 
         }
 
         [HttpGet]
-        public string GetTestTranslation()
+        public Task<string> GetSupportedLanguages()
         {
             
-            return "hello world"; 
+            return _translationService.GetSupportedLanguages(); 
         }
     }
 }

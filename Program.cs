@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<ITranslationService, TranslationService>(); 
+builder.Services.AddSingleton<ITranslationService, TranslationService>();
 
 var app = builder.Build();
 
