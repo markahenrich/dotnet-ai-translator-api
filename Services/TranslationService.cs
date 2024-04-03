@@ -1,17 +1,45 @@
-﻿using System.Runtime.ConstrainedExecution;
+﻿using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using System.Runtime.ConstrainedExecution;
 using static System.Net.WebRequestMethods;
 
 namespace DotnetAiTranslatorApi.Services
 {
     public class TranslationService : ITranslationService
     {
-        private static readonly string? _key = Environment.GetEnvironmentVariable("TRANSLATOR_KEY");
-        private static readonly string? _endpoint = Environment.GetEnvironmentVariable("TRANSLATOR_ENDPOINT");
+        private readonly string? _key;
+        private static readonly string? _translatorEndpoint = Environment.GetEnvironmentVariable("TRANSLATOR_ENDPOINT");
         private static readonly string _supportedLangsEndpoint = "https://api.cognitive.microsofttranslator.com";
+
+        public TranslationService()
+        {
+            var keyVaultEndpoint = Environment.GetEnvironmentVariable("KEY_VAULT_ENDPOINT");
+            if (keyVaultEndpoint != null && keyVaultEndpoint != "")
+            {
+                /*
+                 * If running into issues with DefaultAzureCredential:
+                 * 
+                 * Inside Visual Studio: go to Tools > Options > Azure Service Authentication > Account Selection
+                 * and select the correct account. 
+                 * 
+                 * If that doesn't work use Developer Powershell and run command "az login", then authenticate with Azure
+                 * 
+                 */
+                var client = new SecretClient(new Uri(keyVaultEndpoint), new DefaultAzureCredential());
+                try
+                {
+                    _key = client.GetSecret("TRANSLATOR-KEY").Value.Value;
+                } 
+                catch(AuthenticationFailedException e)
+                {
+                    Console.WriteLine($"Authentication failed: {e.Message}");
+                }
+            }
+        }
 
         public bool IsKeyAndEndpointValid()
         {
-            if (_key == null || _key == "" || _endpoint == null || _endpoint == "")
+            if (_key == null || _key == "" || _translatorEndpoint == null || _translatorEndpoint == "")
             {
                 return false;
             }
@@ -33,7 +61,6 @@ namespace DotnetAiTranslatorApi.Services
          * example: https://api.cognitive.microsofttranslator.com/languages?api-version=3.0
          * 
          */
-
         public async Task<string> GetSupportedLanguages()
         {
             HttpClient client = new HttpClient();
