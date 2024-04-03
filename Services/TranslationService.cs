@@ -1,7 +1,5 @@
 ﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using System.Runtime.ConstrainedExecution;
-using static System.Net.WebRequestMethods;
 
 namespace DotnetAiTranslatorApi.Services
 {
