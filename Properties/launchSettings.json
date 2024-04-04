@@ -16,8 +16,8 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "TRANSLATOR_ENDPOINT": "test",
-        "KEY_VAULT_ENDPOINT": "https://dotnet-ai-translator-kv.vault.azure.net/"
+        "TRANSLATOR_ENDPOINT": "https://api.cognitive.microsofttranslator.com",
+        "KEY_VAULT_ENDPOINT": "https://dotnet-ai-translator-kv.vault.azure.net"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7141;http://localhost:5013"

@@ -1,5 +1,4 @@
 ﻿using DotnetAiTranslatorApi.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotnetAiTranslatorApi.Controllers
@@ -17,11 +16,19 @@ namespace DotnetAiTranslatorApi.Controllers
             _translationService = translationService; 
         }
 
-        [HttpGet]
+        [HttpGet("supported-langs")]
         public Task<string> GetSupportedLanguages()
         {
             
             return _translationService.GetSupportedLanguages(); 
+        }
+
+        [HttpGet]
+        public Task<object?> GetTranslation(string text, string from, string to)
+        {
+            // TODO: Sanitize input 
+
+            return _translationService.GetTranslation(text, from, to);
         }
     }
 }

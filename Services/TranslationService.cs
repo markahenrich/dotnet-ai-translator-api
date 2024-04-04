@@ -1,13 +1,14 @@
 ﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace DotnetAiTranslatorApi.Services
 {
     public class TranslationService : ITranslationService
     {
-        private readonly string? _key;
+        private readonly KeyVaultSecret? _key;
         private static readonly string? _translatorEndpoint = Environment.GetEnvironmentVariable("TRANSLATOR_ENDPOINT");
-        private static readonly string _supportedLangsEndpoint = "https://api.cognitive.microsofttranslator.com";
 
         public TranslationService()
         {
@@ -26,7 +27,7 @@ namespace DotnetAiTranslatorApi.Services
                 var client = new SecretClient(new Uri(keyVaultEndpoint), new DefaultAzureCredential());
                 try
                 {
-                    _key = client.GetSecret("TRANSLATOR-KEY").Value.Value;
+                    _key = client.GetSecret("TRANSLATOR-KEY").Value;
                 } 
                 catch(AuthenticationFailedException e)
                 {
@@ -37,7 +38,7 @@ namespace DotnetAiTranslatorApi.Services
 
         public bool IsKeyAndEndpointValid()
         {
-            if (_key == null || _key == "" || _translatorEndpoint == null || _translatorEndpoint == "")
+            if (_key == null || _key.Value == "" || _translatorEndpoint == null || _translatorEndpoint == "")
             {
                 return false;
             }
@@ -61,18 +62,46 @@ namespace DotnetAiTranslatorApi.Services
          */
         public async Task<string> GetSupportedLanguages()
         {
-            HttpClient client = new HttpClient();
-            UriBuilder builder = new UriBuilder(_supportedLangsEndpoint)
+            using (var client = new HttpClient())
             {
-                Path = "/languages",
-                Query = "?api-version=3.0"
-            };
-            client.BaseAddress = builder.Uri;
+                string route = "/languages?api-version=3.0";
 
-            // TODO: implement model for this response
-            var response = await client.GetStringAsync("");
+                client.BaseAddress = new Uri(_translatorEndpoint + route);
 
-            return response; 
+                // TODO: implement model for this response
+                var response = await client.GetStringAsync("");
+
+                return response;
+            }
+        }
+
+        public async Task<object?> GetTranslation(string text, string from, string to)
+        {
+            if (!IsKeyAndEndpointValid())
+            {
+                return null;
+            }
+
+            string route = $"/translate?api-version=3.0&from={from}&to={to}";
+
+            Object[] body = new object[] { new { Text = text } };
+            var requestBody = JsonConvert.SerializeObject(body);
+
+            using (var client = new HttpClient())
+            using (var request = new HttpRequestMessage())
+            {
+                request.Method = HttpMethod.Post;
+                request.RequestUri = new Uri(_translatorEndpoint + route);
+                request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+                request.Headers.Add("Ocp-Apim-Subscription-Key", _key.Value);
+                request.Headers.Add("Ocp-Apim-Subscription-Region", "westus2"); 
+
+                HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
+
+                // TODO: implement model for this response 
+                string result = await response.Content.ReadAsStringAsync();
+                return result;
+            }
         }
     }
 }
